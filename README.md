@@ -22,6 +22,7 @@ generator, readiness computation, tests. Solver, UI, and agent layer are next.
 ```bash
 make test        # run the test suite
 make seed        # create demo.db with both packs
+pip install -r backend/requirements.txt   # pytest + ortools
 ```
 
 ## Layout
@@ -30,5 +31,6 @@ make seed        # create demo.db with both packs
 backend/app/db.py          SQLite schema
 backend/app/readiness.py   gaps, expiring items, per-person and per-group readiness
 backend/app/seed.py        synthetic data generator
+backend/app/solver.py      CP-SAT optimizer, what-if overrides, validate(), diff, save/approve
 backend/app/packs/<id>/    rules.json, vocabulary.json, scenario.json
 ```

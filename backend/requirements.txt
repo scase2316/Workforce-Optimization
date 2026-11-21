@@ -1,2 +1,3 @@
 pytest>=8
-# Added in later stages: fastapi, uvicorn, ortools, anthropic
+ortools>=9.10
+# Added in later stages: fastapi, uvicorn, anthropic

@@ -1,29 +1,135 @@
 {
   "people": 150,
   "horizon_days": 180,
-  "default_roles": {"Private First Class": 0.15, "Lance Corporal": 0.30, "Corporal": 0.28, "Sergeant": 0.17, "Staff Sergeant": 0.10},
+  "default_roles": {
+    "Private First Class": 0.15,
+    "Lance Corporal": 0.3,
+    "Corporal": 0.28,
+    "Sergeant": 0.17,
+    "Staff Sergeant": 0.1
+  },
   "groups": [
-    {"name": "Alpha Company", "weight": 1, "min_available_pct": 0.70},
-    {"name": "Bravo Company", "weight": 1, "min_available_pct": 0.70},
-    {"name": "Charlie Company", "weight": 1, "min_available_pct": 0.70},
-    {"name": "Weapons Company", "weight": 1, "min_available_pct": 0.65},
-    {"name": "Headquarters & Service Company", "weight": 0.7, "min_available_pct": 0.75}
+    {
+      "name": "Alpha Company",
+      "weight": 1,
+      "min_available_pct": 0.6
+    },
+    {
+      "name": "Bravo Company",
+      "weight": 1,
+      "min_available_pct": 0.55
+    },
+    {
+      "name": "Charlie Company",
+      "weight": 1,
+      "min_available_pct": 0.6
+    },
+    {
+      "name": "Weapons Company",
+      "weight": 1,
+      "min_available_pct": 0.55
+    },
+    {
+      "name": "Headquarters & Service Company",
+      "weight": 0.7,
+      "min_available_pct": 0.65
+    }
   ],
-  "tenure_days": [30, 900],
+  "tenure_days": [
+    30,
+    900
+  ],
   "offerings": [
-    {"requirement_id": "cpl_course", "first_offset_days": 14, "every_days": 45, "seats": 12, "location": "NCO Academy"},
-    {"requirement_id": "sgt_course", "first_offset_days": 21, "every_days": 60, "seats": 8, "location": "NCO Academy"},
-    {"requirement_id": "ssgt_career", "first_offset_days": 30, "every_days": 90, "seats": 6, "location": "SNCO Academy"},
-    {"requirement_id": "rifle_qual", "first_offset_days": 7, "every_days": 14, "seats": 30, "location": "Range 1"},
-    {"requirement_id": "pft", "first_offset_days": 3, "every_days": 10, "seats": 40, "location": "Battalion"},
-    {"requirement_id": "cft", "first_offset_days": 5, "every_days": 10, "seats": 40, "location": "Battalion"},
-    {"requirement_id": "cyber", "first_offset_days": 2, "every_days": 7, "seats": 60, "location": "Online / classroom"}
+    {
+      "requirement_id": "cpl_course",
+      "first_offset_days": 14,
+      "every_days": 45,
+      "seats": 12,
+      "location": "NCO Academy"
+    },
+    {
+      "requirement_id": "sgt_course",
+      "first_offset_days": 21,
+      "every_days": 60,
+      "seats": 8,
+      "location": "NCO Academy"
+    },
+    {
+      "requirement_id": "ssgt_career",
+      "first_offset_days": 30,
+      "every_days": 90,
+      "seats": 6,
+      "location": "SNCO Academy"
+    },
+    {
+      "requirement_id": "rifle_qual",
+      "first_offset_days": 7,
+      "every_days": 14,
+      "seats": 16,
+      "location": "Range 1"
+    },
+    {
+      "requirement_id": "pft",
+      "first_offset_days": 3,
+      "every_days": 10,
+      "seats": 20,
+      "location": "Battalion"
+    },
+    {
+      "requirement_id": "cft",
+      "first_offset_days": 5,
+      "every_days": 10,
+      "seats": 20,
+      "location": "Battalion"
+    },
+    {
+      "requirement_id": "cyber",
+      "first_offset_days": 2,
+      "every_days": 7,
+      "seats": 30,
+      "location": "Online / classroom"
+    }
   ],
   "commitments": [
-    {"group": "Alpha Company", "type": "exercise", "name": "Field Exercise", "offset_days": 40, "duration_days": 21, "subset_pct": null},
-    {"group": "Bravo Company", "type": "deployment", "name": "Detachment Deployment", "offset_days": 75, "duration_days": 60, "subset_pct": 0.40},
-    {"group": "Charlie Company", "type": "exercise", "name": "Combined Arms Exercise", "offset_days": 110, "duration_days": 14, "subset_pct": null},
-    {"group": "Weapons Company", "type": "exercise", "name": "Live-Fire Package", "offset_days": 25, "duration_days": 10, "subset_pct": null},
-    {"group": "*", "type": "leave", "name": "Holiday Block Leave", "offset_days": 30, "duration_days": 14, "subset_pct": 0.35}
+    {
+      "group": "Alpha Company",
+      "type": "exercise",
+      "name": "Field Exercise",
+      "offset_days": 30,
+      "duration_days": 18,
+      "subset_pct": 0.35
+    },
+    {
+      "group": "Bravo Company",
+      "type": "deployment",
+      "name": "Detachment Deployment",
+      "offset_days": 75,
+      "duration_days": 60,
+      "subset_pct": 0.35
+    },
+    {
+      "group": "Charlie Company",
+      "type": "exercise",
+      "name": "Combined Arms Exercise",
+      "offset_days": 110,
+      "duration_days": 14,
+      "subset_pct": 0.3
+    },
+    {
+      "group": "Weapons Company",
+      "type": "exercise",
+      "name": "Live-Fire Package",
+      "offset_days": 25,
+      "duration_days": 10,
+      "subset_pct": 0.35
+    },
+    {
+      "group": "*",
+      "type": "leave",
+      "name": "Holiday Block Leave",
+      "offset_days": 55,
+      "duration_days": 14,
+      "subset_pct": 0.3
+    }
   ]
 }
