@@ -76,9 +76,14 @@ class PersonReadiness:
 
 def _applies(req: sqlite3.Row, person: sqlite3.Row, triggers: list[sqlite3.Row]):
     """Return the date the requirement was triggered for this person, or None."""
-    roles = json.loads(req["applies_to"]).get("role")
+    filt = json.loads(req["applies_to"])
+    roles = filt.get("role")
     if roles and person["role"] not in roles:
         return None
+    attrs = json.loads(person["attributes"] or "{}")
+    for key, allowed in (filt.get("attributes") or {}).items():
+        if allowed and attrs.get(key) not in allowed:
+            return None
     if req["trigger_type"] == "standing":
         return _d(person["start_date"])
     matching = [_d(t["date"]) for t in triggers if t["type"] == req["trigger_type"]]

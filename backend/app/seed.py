@@ -51,6 +51,18 @@ def _split(total: int, weights: list[float]) -> list[int]:
     return sizes
 
 
+def generate_offerings(conn: sqlite3.Connection, pack_id: str, req_id: str, duration_days: int, as_of: date,
+                       horizon_days: int, first_offset: int, every_days: int, seats: int, location: str) -> int:
+    """Create a recurring series of sessions from as_of through the planning horizon."""
+    n, start, horizon = 0, as_of + timedelta(days=first_offset), as_of + timedelta(days=horizon_days)
+    while start <= horizon:
+        conn.execute("INSERT INTO offering (pack_id,requirement_id,start,end,seats,location) VALUES (?,?,?,?,?,?)",
+                     (pack_id, req_id, start.isoformat(), (start + timedelta(days=duration_days - 1)).isoformat(), seats, location))
+        n += 1
+        start += timedelta(days=every_days)
+    return n
+
+
 def seed_pack(conn: sqlite3.Connection, pack_id: str, as_of: date,
               seed: int = 42, people: Optional[int] = None) -> dict:
     pack = load_pack(pack_id)
@@ -94,16 +106,18 @@ def seed_pack(conn: sqlite3.Connection, pack_id: str, as_of: date,
                     break
             role = _weighted(rng, roles)
             start = as_of - timedelta(days=rng.randint(lo, hi))
+            attr_spec = g.get("attributes", sc.get("attributes", {}))
+            attrs = {k: _weighted(rng, w) for k, w in attr_spec.items()}
             cur = conn.execute(
                 "INSERT INTO person (pack_id,group_id,name,role,start_date,attributes) VALUES (?,?,?,?,?,?)",
-                (pack_id, gid, name, role, iso(start), "{}"))
+                (pack_id, gid, name, role, iso(start), json.dumps(attrs)))
             pid = cur.lastrowid
             group_people[gid].append(pid)
-            person_rows.append((pid, role, start))
+            person_rows.append((pid, role, start, attrs))
 
     # Event triggers
     triggers: dict[int, dict[str, date]] = {}
-    for pid, role, start in person_rows:
+    for pid, role, start, attrs in person_rows:
         ev: dict[str, date] = {}
         trigger_types = {r["trigger_type"] for r in reqs}
         if "hire" in trigger_types:
@@ -123,18 +137,21 @@ def seed_pack(conn: sqlite3.Connection, pack_id: str, as_of: date,
         triggers[pid] = ev
 
     # Completions
-    def applies(req: dict, role: str, start: date, ev: dict[str, date]) -> Optional[date]:
-        roles = req["applies_to"].get("role")
-        if roles and role not in roles:
+    def applies(req: dict, role: str, start: date, ev: dict[str, date], attrs: dict) -> Optional[date]:
+        f = req["applies_to"]
+        if f.get("role") and role not in f["role"]:
             return None
+        for k, allowed in (f.get("attributes") or {}).items():
+            if allowed and attrs.get(k) not in allowed:
+                return None
         if req["trigger_type"] == "standing":
             return start
         return ev.get(req["trigger_type"])
 
     n_comp = 0
-    for pid, role, start in person_rows:
+    for pid, role, start, attrs in person_rows:
         ev = triggers[pid]
-        applicable = {r["id"]: applies(r, role, start, ev) for r in reqs}
+        applicable = {r["id"]: applies(r, role, start, ev, attrs) for r in reqs}
         applicable = {k: v for k, v in applicable.items() if v is not None}
         done: dict[str, date] = {}
 
@@ -183,17 +200,10 @@ def seed_pack(conn: sqlite3.Connection, pack_id: str, as_of: date,
                 add(rid, completed)
 
     # Offerings
-    horizon = as_of + timedelta(days=sc["horizon_days"])
     n_off = 0
     for t in sc["offerings"]:
-        dur = req_by_id[t["requirement_id"]]["duration_days"]
-        start = as_of + timedelta(days=t["first_offset_days"])
-        while start <= horizon:
-            conn.execute("INSERT INTO offering (pack_id,requirement_id,start,end,seats,location) VALUES (?,?,?,?,?,?)",
-                         (pack_id, t["requirement_id"], iso(start), iso(start + timedelta(days=dur - 1)),
-                          t["seats"], t["location"]))
-            n_off += 1
-            start += timedelta(days=t["every_days"])
+        n_off += generate_offerings(conn, pack_id, t["requirement_id"], req_by_id[t["requirement_id"]]["duration_days"],
+                                    as_of, sc["horizon_days"], t["first_offset_days"], t["every_days"], t["seats"], t["location"])
 
     # Commitments
     n_com = 0
@@ -213,6 +223,7 @@ def seed_pack(conn: sqlite3.Connection, pack_id: str, as_of: date,
             n_com += 1
 
     conn.execute("INSERT OR REPLACE INTO meta VALUES (?,?)", (f"as_of:{pack_id}", as_of.isoformat()))
+    conn.execute("INSERT OR REPLACE INTO meta VALUES (?,?)", (f"rules_version:{pack_id}", "1"))
     conn.commit()
     return {"pack": pack_id, "people": len(person_rows), "groups": len(group_ids),
             "completions": n_comp, "offerings": n_off, "commitments": n_com}

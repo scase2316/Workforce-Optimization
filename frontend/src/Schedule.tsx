@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "./api";
-import type { Assignment, Capacity, Overview, Run } from "./types";
+import type { AIChange, AIStatus, Assignment, Capacity, Overview, Run } from "./types";
 import { fmt, plural, STATUS_LABEL } from "./util";
 
 function why(a: Assignment): string {
@@ -13,7 +13,7 @@ function why(a: Assignment): string {
   return `${lead} ${e ? `Earlier session on ${fmt(e.start)} ${e.reason}.` : "Earliest session that fits."}`;
 }
 
-export default function Schedule({ pack, overview, run, setRun }: { pack: string; overview: Overview; run: Run | null; setRun: (r: Run | null) => void }) {
+export default function Schedule({ pack, overview, run, setRun, ai }: { pack: string; overview: Overview; run: Run | null; setRun: (r: Run | null) => void; ai: AIStatus | null }) {
   const v = overview.vocabulary;
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -24,8 +24,13 @@ export default function Schedule({ pack, overview, run, setRun }: { pack: string
   const [seats, setSeats] = useState(4);
   const [groupFilter, setGroupFilter] = useState(0);
   const [showAll, setShowAll] = useState(false);
+  const [changeText, setChangeText] = useState("");
+  const [understood, setUnderstood] = useState<AIChange | null>(null);
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState<{ answer: string; grounded_on: string[] } | null>(null);
 
-  useEffect(() => { setShiftId(null); setReqId(overview.requirements[0]?.id ?? ""); setErr(null); }, [pack, overview]);
+  useEffect(() => { setShiftId(null); setReqId(overview.requirements[0]?.id ?? ""); setErr(null); setUnderstood(null); setAnswer(null); }, [pack]);
+  useEffect(() => { setAnswer(null); setUnderstood(null); }, [run?.run_id]);
   useEffect(() => { api.capacity(pack).then(setCap); }, [pack]);
   const commitments = (run?.capacity ?? cap)?.commitments ?? [];
   const groupName = (id: number) => overview.groups.find((g) => g.group_id === id)?.name ?? "";
@@ -54,6 +59,10 @@ export default function Schedule({ pack, overview, run, setRun }: { pack: string
     );
   }
 
+  const doAsk = async () => {
+    setBusy("ask"); setErr(null); setAnswer(null);
+    try { setAnswer(await api.aiAsk(pack, question, run.run_id)); } catch (e) { setErr((e as Error).message); } finally { setBusy(null); }
+  };
   const s = run.summary;
   const d = run.diff;
   return (
@@ -67,6 +76,12 @@ export default function Schedule({ pack, overview, run, setRun }: { pack: string
       </p>
 
       {err && <div className="error" role="alert">{err}</div>}
+      {run.rules_version !== overview.rules_version && (
+        <div className="error" role="status" style={{ background: "#fdf1d3", borderColor: "#efd28b", color: "#6b4700" }}>
+          Rules have changed since this plan was made, so it may be out of date.{" "}
+          <button className="btn quiet" disabled={!!busy} onClick={() => act("opt", () => api.optimize(pack))}>Optimize again</button>
+        </div>
+      )}
       <div className="approve-bar">
         <span className="chip" data-s={run.run_status}>{run.run_status === "proposed" ? "Proposed" : run.run_status === "approved" ? "Approved" : "Rejected"}</span>
         <button className="btn primary" disabled={!!busy || run.run_status === "approved"}
@@ -113,6 +128,22 @@ export default function Schedule({ pack, overview, run, setRun }: { pack: string
           </button>
         </div>
       </div>
+      <div className="whatif" style={{ marginTop: 12 }}>
+        <div className="line" style={{ alignItems: "stretch" }}>
+          <input className="grow1" value={changeText} onChange={(e) => setChangeText(e.target.value)} aria-label="Describe a change in plain English"
+            placeholder="Or say it in words: move the field exercise two weeks later" />
+          <button className="btn" disabled={!!busy || !changeText.trim()} onClick={async () => {
+            setBusy("understand"); setErr(null); setUnderstood(null);
+            try { setUnderstood(await api.aiWhatIf(pack, changeText, run.run_id)); } catch (e) { setErr((e as Error).message); } finally { setBusy(null); }
+          }}>{busy === "understand" ? "Reading…" : "Understand"}</button>
+        </div>
+        {understood && (understood.change ? (
+          <div className="line"><span>I understood: <b>{understood.understood}</b>.</span>
+            <button className="btn primary" disabled={!!busy} onClick={() => act("shift", () => api.whatIf(pack, run.run_id, understood.change!))}>Run it</button>
+            <button className="btn quiet" onClick={() => setUnderstood(null)}>Dismiss</button></div>
+        ) : <div className="muted">{understood.message}</div>)}
+        <div className="muted">{ai?.mode === "live" ? "Interpreted by AI. Nothing runs until you confirm." : "Demo mode: simple phrasings only. Nothing runs until you confirm."}</div>
+      </div>
       {d && run.compared_to && (
         <div className="diff">
           <p><b>Compared with the previous plan:</b> {plural(d.moved.length, "item")} moved, {plural(d.removed.length, "item")} no longer scheduled,
@@ -146,6 +177,16 @@ export default function Schedule({ pack, overview, run, setRun }: { pack: string
           {run.unscheduled.length > 15 && <p className="muted">and {run.unscheduled.length - 15} more.</p>}
         </>
       )}
+
+      <h2 className="section">Ask about this plan</h2>
+      <p className="section-note">{ai?.mode === "live" ? "Answers use only this plan's data." : "Demo mode: answers are built from the plan's data with fixed wording."} Try a person's name or a requirement.</p>
+      <div className="line" style={{ display: "flex", gap: 10, alignItems: "stretch" }}>
+        <input className="grow1 askline" value={question} onChange={(e) => setQuestion(e.target.value)} aria-label="Ask about this plan"
+          placeholder={run.assignments[0] ? `Why is ${run.assignments[0].person} scheduled for ${run.assignments[0].requirement} then?` : "Why were some items not scheduled?"}
+          onKeyDown={(e) => { if (e.key === "Enter" && question.trim() && !busy) void doAsk(); }} />
+        <button className="btn" disabled={!!busy || !question.trim()} onClick={() => void doAsk()}>{busy === "ask" ? "Thinking…" : "Ask"}</button>
+      </div>
+      {answer && <div className="diff" style={{ marginTop: 12 }}><p>{answer.answer}</p></div>}
 
       <h2 className="section">The plan</h2>
       <p className="section-note">Every assignment with the reason it landed where it did.</p>

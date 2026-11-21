@@ -1,4 +1,5 @@
 export interface Vocab {
+  attribute_labels?: Record<string, string>; attribute_values?: Record<string, Record<string, string>>;
   name: string; tagline: string; person: string; people: string; group: string; groups: string; disclaimer: string;
   commitment_types: Record<string, string>;
 }
@@ -8,7 +9,7 @@ export interface GroupRow {
   complete: number; expiring: number; gap: number; overdue: number; readiness_pct: number;
 }
 export interface Overview {
-  as_of: string; vocabulary: Vocab;
+  as_of: string; vocabulary: Vocab; rules_version: number;
   totals: { people: number; items: number; complete: number; expiring: number; gap: number; overdue: number; readiness_pct: number };
   groups: GroupRow[];
   requirements: { id: string; name: string; complete: number; expiring: number; gap: number; overdue: number }[];
@@ -43,7 +44,7 @@ export interface Diff {
   moved: { person: string; requirement: string; from: string; to: string }[];
 }
 export interface Run {
-  run_id: number; run_status: "proposed" | "approved" | "rejected"; parent_run_id: number | null;
+  run_id: number; rules_version: number; run_status: "proposed" | "approved" | "rejected"; parent_run_id: number | null;
   status: string; optimal: boolean; runtime_s: number;
   assignments: Assignment[]; unscheduled: Unscheduled[]; summary: Summary; capacity: Capacity;
   diff: Diff | null; compared_to?: { run_id: number; summary: Summary };
@@ -53,3 +54,25 @@ export interface WhatIfBody {
   shift?: { commitment_id: number; days: number }[];
   seat_cap?: { requirement_id: string; seats: number }[];
 }
+
+export interface Rule {
+  id: string; name: string; trigger_type: string; roles: string[]; attributes: Record<string, string[]>;
+  deadline_days: number; valid_days: number | null; duration_days: number; prerequisites: string[]; session_count: number;
+}
+export interface Facets {
+  roles: { value: string; count: number }[];
+  attributes: Record<string, { label: string; values: { value: string; label: string; count: number }[] }>;
+  triggers: { value: string; label: string; available: boolean }[];
+}
+export interface SessionPlan { first_offset_days: number; every_days: number; seats: number; location: string }
+export interface RuleDraft {
+  id?: string; name: string; trigger_type: string; roles: string[]; attributes: Record<string, string[]>;
+  deadline_days: number; valid_days: number | null; duration_days: number; prerequisites: string[]; sessions?: SessionPlan | null;
+}
+export interface Preview {
+  errors: string[]; applies_to?: number; people_total?: number; by_status?: Record<string, number>;
+  readiness_before_pct?: number; readiness_after_pct?: number;
+}
+export interface Proposal { rule: RuleDraft; errors: string[]; preview: Preview | null; assumptions: string[]; confidence: string; source_quote: string }
+export interface AIStatus { mode: "live" | "demo"; model: string | null; used_today: number; daily_limit: number }
+export interface AIChange { mode: string; change: WhatIfBody | null; understood: string | null; message: string | null }

@@ -1,10 +1,25 @@
 {
   "name": "New-Hire Onboarding",
   "tagline": "Hire-triggered compliance, tooling, and enablement scheduled around team delivery cycles",
-  "person": "Employee", "people": "Employees",
-  "group": "Team", "groups": "Teams",
+  "person": "Employee",
+  "people": "Employees",
+  "group": "Team",
+  "groups": "Teams",
   "trigger_promotion": "Promotion",
-  "requirement": "Requirement", "offering": "Session / Cohort",
-  "commitment_types": {"sprint": "Sprint / Crunch", "pto": "PTO"},
-  "disclaimer": "Illustrative scenario with fully synthetic data."
+  "requirement": "Requirement",
+  "offering": "Session / Cohort",
+  "commitment_types": {
+    "sprint": "Sprint / Crunch",
+    "pto": "PTO"
+  },
+  "disclaimer": "Illustrative scenario with fully synthetic data.",
+  "attribute_labels": {
+    "location": "Location"
+  },
+  "attribute_values": {
+    "location": {
+      "HQ": "HQ office",
+      "Remote": "Remote"
+    }
+  }
 }

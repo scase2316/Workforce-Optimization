@@ -19,6 +19,8 @@ from pydantic import BaseModel
 
 from . import db
 from .packs import list_pack_ids, load_pack
+from . import ai as ai_mod
+from . import rules as rules_mod
 from .readiness import pack_readiness, person_readiness
 from .seed import seed_pack
 from .solver import (availability, diff_schedules, load_problem, save_run, set_run_status, solve)
@@ -81,7 +83,7 @@ async def overview(pack: str):
     tot = Counter(i.status for p in people for i in p.items)
     n = sum(tot.values())
     return {
-        "as_of": d.isoformat(), "vocabulary": load_pack(pack)["vocabulary"],
+        "as_of": d.isoformat(), "vocabulary": load_pack(pack)["vocabulary"], "rules_version": rules_mod.get_version(conn(), pack),
         "totals": {"people": len(people), "items": n, "complete": tot["complete"], "expiring": tot["expiring"],
                    "gap": tot["gap"], "overdue": tot["overdue"],
                    "readiness_pct": round(100 * (tot["complete"] + tot["expiring"]) / n, 1) if n else 100.0},
@@ -168,8 +170,9 @@ def _build(pack: str, overrides: dict, prior: Optional[list[dict]], parent_run_i
     r = solve(P, time_limit=20, prior=prior)
     if r["status"] not in ("OPTIMAL", "FEASIBLE"):
         raise HTTPException(422, f"No feasible schedule ({r['status']}). Loosen a constraint and try again.")
+    r["constraints_snapshot"]["rules_version"] = rules_mod.get_version(conn(), pack)
     run_id = save_run(conn(), pack, r)
-    payload = {**r, "run_id": run_id, "run_status": "proposed", "parent_run_id": parent_run_id,
+    payload = {**r, "run_id": run_id, "rules_version": r["constraints_snapshot"]["rules_version"], "run_status": "proposed", "parent_run_id": parent_run_id,
                "capacity": _capacity_payload(pack, P, availability(P, r["assignments"], HORIZON)),
                "diff": None}
     if parent_run_id:
@@ -191,7 +194,7 @@ def _get_run(run_id: int) -> dict:
     # JSON turned int keys into strings; load_problem accepts both
     P = load_problem(conn(), row["pack_id"], date.fromisoformat(snap["as_of"]), ov)
     r = solve(P, time_limit=20)
-    payload = {**r, "run_id": run_id, "run_status": row["status"], "parent_run_id": None,
+    payload = {**r, "run_id": run_id, "run_status": row["status"], "parent_run_id": None, "rules_version": snap.get("rules_version", 0),
                "capacity": _capacity_payload(row["pack_id"], P, availability(P, r["assignments"], HORIZON)), "diff": None}
     _runs[run_id] = payload
     return payload
@@ -217,6 +220,128 @@ async def latest(pack: str):
     if not row:
         return None
     return _get_run(row[0])
+
+
+class SessionsBody(BaseModel):
+    first_offset_days: int = 3
+    every_days: int = 14
+    seats: int = 10
+    location: str = ""
+
+
+class RuleBody(BaseModel):
+    id: Optional[str] = None
+    name: str
+    trigger_type: str
+    roles: list[str] = []
+    attributes: dict[str, list[str]] = {}
+    deadline_days: int
+    valid_days: Optional[int] = None
+    duration_days: int = 1
+    prerequisites: list[str] = []
+    sessions: Optional[SessionsBody] = None
+
+
+def _rule_errors(e: rules_mod.RuleError):
+    raise HTTPException(e.status, e.errors)
+
+
+@app.get("/api/{pack}/rules")
+async def get_rules(pack: str):
+    as_of(pack)
+    return {"rules": rules_mod.list_rules(conn(), pack), "facets": rules_mod.facets(conn(), pack),
+            "rules_version": rules_mod.get_version(conn(), pack)}
+
+
+@app.post("/api/{pack}/rules/preview")
+async def preview_rule(pack: str, body: RuleBody, rule_id: Optional[str] = None):
+    return rules_mod.preview(conn(), pack, body.model_dump(), rule_id, as_of(pack), HORIZON)
+
+
+@app.post("/api/{pack}/rules")
+async def create_rule(pack: str, body: RuleBody):
+    try:
+        return rules_mod.save(conn(), pack, body.model_dump(), None, as_of(pack), HORIZON)
+    except rules_mod.RuleError as e:
+        _rule_errors(e)
+
+
+@app.put("/api/{pack}/rules/{rule_id}")
+async def update_rule(pack: str, rule_id: str, body: RuleBody):
+    try:
+        return rules_mod.save(conn(), pack, body.model_dump(), rule_id, as_of(pack), HORIZON)
+    except rules_mod.RuleError as e:
+        _rule_errors(e)
+
+
+@app.delete("/api/{pack}/rules/{rule_id}")
+async def delete_rule(pack: str, rule_id: str):
+    as_of(pack)
+    try:
+        rules_mod.delete(conn(), pack, rule_id)
+    except rules_mod.RuleError as e:
+        _rule_errors(e)
+    return {"deleted": rule_id}
+
+
+@app.post("/api/{pack}/reset")
+async def reset_pack(pack: str):
+    """Restore this scenario's rules, people, sessions, and plans to the original synthetic data."""
+    as_of(pack)
+    seed_pack(conn(), pack, date.today())
+    _runs.clear()          # cached plans; the database record of other scenarios' runs is untouched
+    return {"reset": pack}
+
+
+# ---------------------------------------------------------------- optional AI layer (see ai.py)
+
+class TextBody(BaseModel):
+    text: str
+
+
+class WhatIfText(BaseModel):
+    text: str
+    run_id: int
+
+
+class AskBody(BaseModel):
+    question: str
+    run_id: int
+
+
+def _ai_call(fn, *a):
+    try:
+        return fn(*a)
+    except ai_mod.AIBudgetError as e:
+        raise HTTPException(429, [str(e)])
+    except ai_mod.AIFailure as e:
+        raise HTTPException(422, [str(e)])
+
+
+@app.get("/api/ai/status")
+async def ai_status():
+    return ai_mod.status()
+
+
+@app.post("/api/{pack}/ai/rules")
+async def ai_rules(pack: str, body: TextBody):
+    d = as_of(pack)
+    return _ai_call(ai_mod.draft_rules, conn(), pack, body.text, d, HORIZON)
+
+
+@app.post("/api/{pack}/ai/what-if")
+async def ai_what_if(pack: str, body: WhatIfText):
+    run = _get_run(body.run_id)
+    names = {g["group_id"]: g["name"] for g in run["capacity"]["groups"]}
+    commitments = [{"id": c["id"], "group": names[c["group_id"]], "name": c["name"], "start": c["start"], "end": c["end"]}
+                   for c in run["capacity"]["commitments"]]
+    return _ai_call(ai_mod.parse_what_if, conn(), pack, body.text, commitments)
+
+
+@app.post("/api/{pack}/ai/ask")
+async def ai_ask(pack: str, body: AskBody):
+    as_of(pack)
+    return _ai_call(ai_mod.ask, body.question, _get_run(body.run_id))
 
 
 @app.get("/api/schedule/{run_id}")

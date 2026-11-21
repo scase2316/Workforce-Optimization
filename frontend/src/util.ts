@@ -36,3 +36,12 @@ export function useWidth<T extends HTMLElement>() {
   }, [el]);
   return [setEl, w] as const;
 }
+
+export const MONTH = 30.4375;
+/** "548 days" -> "about 18 months (548 days)". Short spans stay in days. */
+export function span(days: number): string {
+  if (days % 365 === 0 && days >= 365) return plural(days / 365, "year");
+  const m = days / MONTH;
+  if (days >= 60) return `${Number.isInteger(Math.round(m * 10) / 10) ? Math.round(m) : m.toFixed(1)} months (${days} days)`;
+  return plural(days, "day");
+}

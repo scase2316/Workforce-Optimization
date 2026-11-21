@@ -248,7 +248,7 @@ def solve(problem: Problem, time_limit: float = 20.0, prior: Optional[list[dict]
     solver.parameters.max_time_in_seconds = time_limit
     solver.parameters.num_workers = workers
     solver.parameters.random_seed = 7
-    solver.parameters.relative_gap_limit = 0.001
+    solver.parameters.relative_gap_limit = 0.0   # exact: solves take well under a second here, and stable diffs depend on it
     status = solver.Solve(m)
     status_name = solver.StatusName(status)
     if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):

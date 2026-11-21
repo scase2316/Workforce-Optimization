@@ -27,12 +27,25 @@
     {
       "name": "Weapons Company",
       "weight": 1,
-      "min_available_pct": 0.55
+      "min_available_pct": 0.55,
+      "attributes": {
+        "mos": {
+          "0331": 0.5,
+          "0341": 0.4,
+          "0311": 0.1
+        }
+      }
     },
     {
       "name": "Headquarters & Service Company",
       "weight": 0.7,
-      "min_available_pct": 0.65
+      "min_available_pct": 0.65,
+      "attributes": {
+        "mos": {
+          "3043": 0.5,
+          "0231": 0.5
+        }
+      }
     }
   ],
   "tenure_days": [
@@ -88,6 +101,13 @@
       "every_days": 7,
       "seats": 30,
       "location": "Online / classroom"
+    },
+    {
+      "requirement_id": "iulc",
+      "first_offset_days": 30,
+      "every_days": 90,
+      "seats": 6,
+      "location": "Infantry school"
     }
   ],
   "commitments": [
@@ -131,5 +151,14 @@
       "duration_days": 14,
       "subset_pct": 0.3
     }
-  ]
+  ],
+  "attributes": {
+    "mos": {
+      "0311": 0.35,
+      "0331": 0.15,
+      "0341": 0.1,
+      "0231": 0.15,
+      "3043": 0.25
+    }
+  }
 }

@@ -1,10 +1,36 @@
 {
   "name": "Marine Corps Unit",
   "tagline": "Promotion-driven professional military education, annual training, and operational tempo",
-  "person": "Marine", "people": "Marines",
-  "group": "Company", "groups": "Companies",
+  "person": "Marine",
+  "people": "Marines",
+  "group": "Company",
+  "groups": "Companies",
   "trigger_promotion": "Promotion",
-  "requirement": "Requirement", "offering": "Course / Range Iteration",
-  "commitment_types": {"exercise": "Exercise", "deployment": "Deployment", "leave": "Block Leave"},
-  "disclaimer": "Illustrative scenario with fully synthetic data. Course names and intervals are simplified and are not authoritative."
+  "requirement": "Requirement",
+  "offering": "Course / Range Iteration",
+  "commitment_types": {
+    "exercise": "Exercise",
+    "deployment": "Deployment",
+    "leave": "Block Leave"
+  },
+  "disclaimer": "Illustrative scenario with fully synthetic data. Course names and intervals are simplified and are not authoritative.",
+  "attribute_labels": {
+    "mos": "MOS"
+  },
+  "attribute_values": {
+    "mos": {
+      "0311": "Rifleman",
+      "0331": "Machine Gunner",
+      "0341": "Mortarman",
+      "0231": "Intelligence Specialist",
+      "3043": "Supply Specialist"
+    }
+  },
+  "role_aliases": {
+    "ssgt": "Staff Sergeant",
+    "sgt": "Sergeant",
+    "cpl": "Corporal",
+    "lcpl": "Lance Corporal",
+    "pfc": "Private First Class"
+  }
 }
