@@ -1,0 +1,26 @@
+{
+  "people": 150,
+  "horizon_days": 180,
+  "default_roles": {"Associate": 0.85, "Manager": 0.15},
+  "groups": [
+    {"name": "Engineering", "weight": 1.2, "min_available_pct": 0.80, "roles": {"Engineer": 0.85, "Manager": 0.15}},
+    {"name": "Sales", "weight": 1.0, "min_available_pct": 0.75, "roles": {"Sales Rep": 0.85, "Manager": 0.15}},
+    {"name": "Customer Support", "weight": 1.0, "min_available_pct": 0.85, "roles": {"Support Specialist": 0.88, "Manager": 0.12}},
+    {"name": "Operations", "weight": 0.6, "min_available_pct": 0.75, "roles": {"Analyst": 0.88, "Manager": 0.12}}
+  ],
+  "tenure_days": [5, 730],
+  "offerings": [
+    {"requirement_id": "tool_access", "first_offset_days": 1, "every_days": 3, "seats": 15, "location": "IT help desk"},
+    {"requirement_id": "conduct", "first_offset_days": 2, "every_days": 7, "seats": 40, "location": "Online"},
+    {"requirement_id": "security", "first_offset_days": 3, "every_days": 7, "seats": 40, "location": "Online"},
+    {"requirement_id": "product_bootcamp", "first_offset_days": 7, "every_days": 14, "seats": 15, "location": "HQ training room"},
+    {"requirement_id": "mentor_kickoff", "first_offset_days": 2, "every_days": 5, "seats": 10, "location": "Team lead"},
+    {"requirement_id": "manager_essentials", "first_offset_days": 14, "every_days": 30, "seats": 12, "location": "HQ training room"}
+  ],
+  "commitments": [
+    {"group": "Engineering", "type": "sprint", "name": "Q1 Release Crunch", "offset_days": 30, "duration_days": 14, "subset_pct": null},
+    {"group": "Sales", "type": "sprint", "name": "Quarter-End Close", "offset_days": 40, "duration_days": 12, "subset_pct": null},
+    {"group": "Customer Support", "type": "sprint", "name": "Holiday Volume Surge", "offset_days": 20, "duration_days": 21, "subset_pct": 0.5},
+    {"group": "*", "type": "pto", "name": "Holiday PTO", "offset_days": 35, "duration_days": 10, "subset_pct": 0.30}
+  ]
+}

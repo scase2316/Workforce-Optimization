@@ -1,0 +1,25 @@
+{
+  "requirements": [
+    {"id": "cpl_course", "name": "Corporals Course", "trigger_type": "promotion",
+     "applies_to": {"role": ["Corporal"]}, "deadline_days": 365, "prerequisites": [],
+     "valid_days": null, "slots_needed": 1, "duration_days": 21},
+    {"id": "sgt_course", "name": "Sergeants Course", "trigger_type": "promotion",
+     "applies_to": {"role": ["Sergeant"]}, "deadline_days": 365, "prerequisites": ["cpl_course"],
+     "valid_days": null, "slots_needed": 1, "duration_days": 30},
+    {"id": "ssgt_career", "name": "Career Course", "trigger_type": "promotion",
+     "applies_to": {"role": ["Staff Sergeant"]}, "deadline_days": 730, "prerequisites": ["sgt_course"],
+     "valid_days": null, "slots_needed": 1, "duration_days": 35},
+    {"id": "rifle_qual", "name": "Annual Rifle Qualification", "trigger_type": "standing",
+     "applies_to": {}, "deadline_days": 365, "prerequisites": [],
+     "valid_days": 365, "slots_needed": 1, "duration_days": 5},
+    {"id": "pft", "name": "Physical Fitness Test", "trigger_type": "standing",
+     "applies_to": {}, "deadline_days": 365, "prerequisites": [],
+     "valid_days": 365, "slots_needed": 1, "duration_days": 1},
+    {"id": "cft", "name": "Combat Fitness Test", "trigger_type": "standing",
+     "applies_to": {}, "deadline_days": 365, "prerequisites": [],
+     "valid_days": 365, "slots_needed": 1, "duration_days": 1},
+    {"id": "cyber", "name": "Cyber Awareness Training", "trigger_type": "standing",
+     "applies_to": {}, "deadline_days": 365, "prerequisites": [],
+     "valid_days": 365, "slots_needed": 1, "duration_days": 1}
+  ]
+}

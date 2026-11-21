@@ -1,0 +1,2 @@
+pytest>=8
+# Added in later stages: fastapi, uvicorn, ortools, anthropic

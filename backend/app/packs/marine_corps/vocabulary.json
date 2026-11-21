@@ -1,0 +1,10 @@
+{
+  "name": "Marine Corps Unit",
+  "tagline": "Promotion-driven professional military education, annual training, and operational tempo",
+  "person": "Marine", "people": "Marines",
+  "group": "Company", "groups": "Companies",
+  "trigger_promotion": "Promotion",
+  "requirement": "Requirement", "offering": "Course / Range Iteration",
+  "commitment_types": {"exercise": "Exercise", "deployment": "Deployment", "leave": "Block Leave"},
+  "disclaimer": "Illustrative scenario with fully synthetic data. Course names and intervals are simplified and are not authoritative."
+}

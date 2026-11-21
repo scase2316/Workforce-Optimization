@@ -1,0 +1,22 @@
+{
+  "requirements": [
+    {"id": "tool_access", "name": "Tool Access Setup", "trigger_type": "hire",
+     "applies_to": {}, "deadline_days": 7, "prerequisites": [],
+     "valid_days": null, "slots_needed": 1, "duration_days": 1},
+    {"id": "conduct", "name": "Code of Conduct", "trigger_type": "hire",
+     "applies_to": {}, "deadline_days": 14, "prerequisites": [],
+     "valid_days": 365, "slots_needed": 1, "duration_days": 1},
+    {"id": "security", "name": "Security & Compliance Training", "trigger_type": "hire",
+     "applies_to": {}, "deadline_days": 30, "prerequisites": ["tool_access"],
+     "valid_days": 365, "slots_needed": 1, "duration_days": 1},
+    {"id": "product_bootcamp", "name": "Product Bootcamp", "trigger_type": "hire",
+     "applies_to": {}, "deadline_days": 45, "prerequisites": ["tool_access"],
+     "valid_days": null, "slots_needed": 1, "duration_days": 5},
+    {"id": "mentor_kickoff", "name": "Mentor Kickoff", "trigger_type": "hire",
+     "applies_to": {}, "deadline_days": 30, "prerequisites": [],
+     "valid_days": null, "slots_needed": 1, "duration_days": 1},
+    {"id": "manager_essentials", "name": "Manager Essentials", "trigger_type": "promotion",
+     "applies_to": {"role": ["Manager"]}, "deadline_days": 90, "prerequisites": ["security"],
+     "valid_days": null, "slots_needed": 1, "duration_days": 3}
+  ]
+}
