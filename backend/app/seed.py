@@ -212,6 +212,7 @@ def seed_pack(conn: sqlite3.Connection, pack_id: str, as_of: date,
                          (pack_id, gid, t["type"], t["name"], iso(s), iso(s + timedelta(days=t["duration_days"] - 1)), ppl))
             n_com += 1
 
+    conn.execute("INSERT OR REPLACE INTO meta VALUES (?,?)", (f"as_of:{pack_id}", as_of.isoformat()))
     conn.commit()
     return {"pack": pack_id, "people": len(person_rows), "groups": len(group_ids),
             "completions": n_comp, "offerings": n_off, "commitments": n_com}

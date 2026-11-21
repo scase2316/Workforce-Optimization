@@ -14,16 +14,19 @@ synthetic data) adapts it to a use case. Two ship today:
 
 ## Status
 
-Stage 1 of 5 (foundation): schema, scenario packs, deterministic seed
-generator, readiness computation, tests. Solver, UI, and agent layer are next.
+Stages 1-3 of 5 done: foundation, CP-SAT optimizer, and the UI (readiness dashboard,
+capacity timeline, schedule with what-if, diff, and approval). Agent layer and polish are next.
 
 ## Run
 
 ```bash
-make test        # run the test suite
-make seed        # create demo.db with both packs
-pip install -r backend/requirements.txt   # pytest + ortools
+make install     # Python deps + npm install (first time)
+make run         # builds the UI, serves everything at http://localhost:8000
+make test        # backend test suite
 ```
+
+For development use two terminals: `make dev-api` and `make dev-ui` (UI at :5173).
+Demo data is created on first start in `demo.db`; delete the file to reset.
 
 ## Layout
 
@@ -32,5 +35,7 @@ backend/app/db.py          SQLite schema
 backend/app/readiness.py   gaps, expiring items, per-person and per-group readiness
 backend/app/seed.py        synthetic data generator
 backend/app/solver.py      CP-SAT optimizer, what-if overrides, validate(), diff, save/approve
+backend/app/api.py         FastAPI endpoints (async, one SQLite connection)
+frontend/src/              React + TypeScript UI: Readiness, Capacity, Schedule
 backend/app/packs/<id>/    rules.json, vocabulary.json, scenario.json
 ```

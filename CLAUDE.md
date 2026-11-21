@@ -15,12 +15,17 @@ polish, a tight demo path, and honest framing matter more than feature count.
 ## Stages
 1. Foundation: DONE (schema, packs, seed, readiness)
 2. Solver: DONE (solver.py: overrides, validate, diff_schedules, save_run)
-3. UI (React + TS, use the frontend-design skill): dashboard, calendar, schedule diff + approve, pack switcher
+3. UI: DONE (frontend/src: Readiness, Capacity timeline, Schedule + what-if + approve; pack accent switches per scenario)
 4. Agent layer (Claude API; canned-response fallback when no key): rule intake with confirmation, what-if, explanations
 5. Polish: business case panel, README + architecture diagram, 3-minute demo script, one-page write-up, one-command run
 
 Check in with the user after each stage. Keep scope tight (see README for cuts).
 
+## UI notes
+- Design: cool-grey paper, ink rail, one accent per pack (data-pack attr), Schibsted Grotesk. Signature element is the Capacity chart (people away, stacked, vs. a dashed ceiling). Keep everything else quiet.
+- Avoid `tabular-nums` on prose: this font widens punctuation. Only numeric cells use it.
+- Verified with headless Chrome screenshots (desktop + 390px). No frontend unit tests yet.
+
 ## Commands
-- `make test` runs pytest; `make seed` creates demo.db
-- Deps: `pip install -r backend/requirements.txt`
+- `make run` builds UI and serves at :8000; `make test` runs pytest; `make seed` creates demo.db
+- Setup: `make install`

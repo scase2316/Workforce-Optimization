@@ -87,6 +87,10 @@ CREATE TABLE IF NOT EXISTS assignment (
     offering_id INTEGER NOT NULL REFERENCES offering(id),
     rationale TEXT NOT NULL DEFAULT '{}'
 );
+CREATE TABLE IF NOT EXISTS meta (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 CREATE INDEX IF NOT EXISTS idx_person_pack ON person(pack_id);
 CREATE INDEX IF NOT EXISTS idx_completion_person ON completion(person_id);
 """

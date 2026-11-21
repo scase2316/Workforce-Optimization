@@ -188,7 +188,8 @@ def solve(problem: Problem, time_limit: float = 20.0, prior: Optional[list[dict]
         if not usable:
             unscheduled_reason[(it.pid, it.req_id)] = (
                 "Every available session conflicts with this person's commitments." if cands
-                else "No remaining session before the deadline or lapse date.")
+                else ("This lapses before the next session starts. Add an earlier session or accept a short lapse."
+                      if it.status == "expiring" else "No session of this requirement is left before the planning window ends."))
             continue
         for o in usable:
             k = (it.pid, it.req_id, o.id)
@@ -439,3 +440,29 @@ def diff_schedules(before: list[dict], after: list[dict]) -> dict:
         "moved": moved,
         "unchanged": sum(1 for k in b if k in a_ and b[k]["offering_id"] == a_[k]["offering_id"]),
     }
+
+
+def availability(problem: Problem, assignments: list[dict], horizon_days: int = 180) -> dict[int, dict]:
+    """Per-group daily head-count series (index 0 = as_of): `base` after commitments only,
+    `planned` after commitments and the scheduled training."""
+    P = problem
+    asof = P.as_of.toordinal()
+    out = {}
+    for gid, g in P.groups.items():
+        away = [set() for _ in range(horizon_days + 1)]
+        for c in P.commitments:
+            if c.gid != gid:
+                continue
+            members = [p for p, info in P.people.items() if info["gid"] == gid and (c.people is None or p in c.people)]
+            for d in range(max(c.start, asof), min(c.end, asof + horizon_days) + 1):
+                away[d - asof].update(members)
+        base = [g["size"] - len(a) for a in away]
+        trained = [0] * (horizon_days + 1)
+        for a in assignments:
+            if a["group_id"] != gid:
+                continue
+            o = P.offerings[a["offering_id"]]
+            for d in range(max(o.start, asof), min(o.end, asof + horizon_days) + 1):
+                trained[d - asof] += 1
+        out[gid] = {"base": base, "planned": [b - t for b, t in zip(base, trained)]}
+    return out
